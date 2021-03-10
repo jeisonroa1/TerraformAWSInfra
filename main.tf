@@ -1,41 +1,65 @@
 
-provider "aws" {
-	region = "eu-west-1"
-}
+### Setup
 
 provider "aws" {
-	region     = "eu-west-1"
-	access_key = "XXXXXXXXXXXXXXXXX"
-	secret_key = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+	region     = var.aws_region
 }
 
+### VPC
+resource "aws_vpc" "main" {
+  cidr_block       = var.vpc_cidr
+  instance_tenancy = "default"
+  tags = var.default_tags
+}
 
-//VPC
-"ramp_up_training" : "vpc-0d2831659ef89870c"
+### Subnets
+resource "aws_subnet" "public1" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = element(var.subnets_cidr,1)
+  availability_zone = element(var.azs,1)
+  tags = var.default_tags
+}
 
-//Se dispone de 2 subnets privadas y 2 publicas
-"ramp_up_training-public-0" : "subnet-0088df5de3a4fe490"
-"ramp_up_training-public-1" : "subnet-055c41fce697f9cca"
-"ramp_up_training-private-0" : "subnet-0088df5de3a4fe490"
-"ramp_up_training-private-1" : "subnet-038fa9d9a69d6561e"
+resource "aws_subnet" "public2" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = element(var.subnets_cidr,2)
+  availability_zone = element(var.azs,2)
+  tags = var.default_tags
+}
 
+resource "aws_subnet" "private1" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = element(var.subnets_cidr,3)
+  availability_zone = element(var.azs,1)
+  tags = var.default_tags
+}
 
-//Por cuestiones de costos, se crea una sola NAT.
-//En un ambiente de produccion, se deberian crear mas de una en diferentes zonas de disponibilidad
-"ramp_up_training-nat-gateway" : "nat-024aa998183a9db83"
+resource "aws_subnet" "private2" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "element(var.subnets_cidr,4"
+  availability_zone = element(var.azs,2)
+  tags = var.default_tags
+}
 
-"ramp_up_training-internet-gateway" : "igw-0ac84600f1b39646e"
+### Internet Gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  tags = var.default_tags
+}
 
-"ramp_up_training_private" : "rtb-0216df4cfc36e2f5a"
-"ramp_up_training_public" : "rtb-0beec0658760f014a"
+### Route table: attach Internet Gateway 
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+  tags = var.default_tags
+  }
 
-RDS
-Las instancias deben corresponder a uno de los siguientes tipos
-"*.small"
-"*.micro"
-
-EC2
- El instanceType debe ser :
-"*.nano"
-"*.small"
-"*.micro"
+### Route table associatiion with public subnets
+resource "aws_route_table_association" "a" {
+  count = length(var.subnets_cidr)
+  subnet_id      = element(aws_subnet.public.*.id,count.index)
+  route_table_id = aws_route_table.public_rt.id
+}

@@ -7,48 +7,63 @@ resource "aws_vpc" "main" {
   tags = var.default_tags
 }
 
-## Subnets
-resource "aws_subnet" "public" {
-  count = length(var.subnets_cidr)
-  vpc_id = aws_vpc.main.id
-  cidr_block = element(var.subnets_cidr,count.index)
-  availability_zone = element(var.azs,count.index)
-  tags = var.default_tags
-}
-
 ## Internet Gateway
-resource "aws_internet_gateway" "igw" {
+resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
   tags = var.default_tags
 }
 
-## Route Table (IG Association) 
-resource "aws_route_table" "public_rt" {
+##  Public Subnet
+resource "aws_subnet" "public_subnet" {
+  for_each = var.az_public_subnet
+
   vpc_id = aws_vpc.main.id
+
+  availability_zone = each.key
+  cidr_block        = each.value
+
+  tags = var.default_tags
+}
+
+## Private Subnet
+resource "aws_subnet" "private_subnet" {
+  for_each = var.az_private_subnet
+
+  vpc_id = aws_vpc.main.id
+
+  availability_zone = each.key
+  cidr_block        = each.value
+
+  tags = var.default_tags
+}
+
+# Database Subnet
+resource "aws_subnet" "database_subnet" {
+  for_each = var.az_database_subnet
+
+  vpc_id = aws_vpc.main.id
+
+  availability_zone = each.key
+  cidr_block        = each.value
+
+  tags = var.default_tags
+}
+
+## Route Table 
+resource "aws_route_table" "public_subnet_route_table" {
+  vpc_id = aws_vpc.main.id
+
   route {
-    cidr_block = var.routeTable_cidr
-    gateway_id = aws_internet_gateway.igw.id
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
   }
   tags = var.default_tags
-  }
-
-## Route table associatiion with public subnets
-resource "aws_route_table_association" "a" {
-  count = length(var.subnets_cidr)
-  subnet_id      = element(aws_subnet.public.*.id,count.index)
-  route_table_id = aws_route_table.public_rt.id
 }
 
-## Load Balancer
-resource "aws_lb" "lb_front" {
-  name               = "frontend"
-  internal           = false
-  load_balancer_type = "application"
-  subnets            = aws_subnet.public.*.id
-}
+## Public subnet route table association
+resource "aws_route_table_association" "public_subnet_route_table_association" {
+  for_each = var.az_public_subnet
 
-## Load balancer attachment
-resource "aws_autoscaling_attachment" "asg_front" {
-  autoscaling_group_name = aws_autoscaling_group.asg_front.id
-  elb                    = aws_lb.lb_front.id
+  subnet_id      = aws_subnet.public_subnet[each.key].id
+  route_table_id = aws_route_table.public_subnet_route_table.id
 }

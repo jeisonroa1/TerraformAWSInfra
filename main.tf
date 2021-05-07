@@ -1,6 +1,15 @@
 
 ### Setup
 
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.26.0"
+    }
+  }
+}
+
 ## Backend
 terraform {
   backend "s3" {
@@ -16,3 +25,5 @@ terraform {
 provider "aws" {
 	region     = var.aws_region
 }
+
+

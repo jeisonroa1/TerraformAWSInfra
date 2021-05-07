@@ -16,26 +16,46 @@ variable "vpc_cidr" {
 	default = "10.0.0.0/16"
 }
 
-variable "routeTable_cidr" {
-	default = "0.0.0.0/0"
+variable "az_public_subnet" {
+	type = map(string)
+    default = {
+  		"us-west-1a" : "10.0.0.0/24",
+  		"us-west-1c" : "10.0.1.0/24"
+  	}
 }
 
-variable "subnets_cidr" {
-	type = list
-	default = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24"]
+variable "az_private_subnet" {
+	type = map(string) 
+    default = {
+  		"us-west-1a" : "10.0.101.0/24",
+  		"us-west-1c" : "10.0.102.0/24"
+  	}
+}
+
+variable "az_database_subnet" {
+	type = map(string) 
+    default = {
+  		"us-west-1a" : "10.0.201.0/24",
+  		"us-west-1c" : "10.0.202.0/24"
+  	}
+}
+
+variable "availability_zones" {
+	type = list(string)
+	default = [
+  		"us-west-1a",
+  		"us-west-1c"
+  	]
 }
 
 ### Compute
 variable "ami" {
-	default = "ami-0a245a00f741d6301"
-}
-
-variable "azs" {
-	type = list
-	default = ["us-west-1a", "us-west-1c"]
+	default = "ami-0bdb828fd58c52235"
 }
 
 variable "instance_type" {
 	default = "t2.micro"
 }
+
+
 

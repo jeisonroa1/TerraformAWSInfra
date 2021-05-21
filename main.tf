@@ -16,7 +16,7 @@ terraform {
     bucket = "ramp-up-devops-psl"
     key    = "Ivan.RoaM@perficient.com/terraform.tfstate"
     region = "us-west-1"
-    # dynamodb_endpoint = ""  ############################
+    # dynamodb_endpoint = ""  
     # dynamodb_table = "terraform-state"
   }
 }

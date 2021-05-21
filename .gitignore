@@ -2,3 +2,5 @@
 terraform.tfstate.backup
 terraform.tfstate
 .terraform.lock.hcl
+Roam.pem
+table_creation_and_inserts.sql

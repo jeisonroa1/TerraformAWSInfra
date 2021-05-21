@@ -7,7 +7,7 @@ variable "default_tags" {
     type = map 
     default = { 
     	project: "devops-rampup",
-    	responsible: "ivan.roam@perficient.com"
+    	responsible: "Ivan.RoaM@perficient.com"
   } 
 }
 
@@ -50,12 +50,30 @@ variable "availability_zones" {
 
 ### Compute
 variable "ami" {
-	default = "ami-0bdb828fd58c52235"
+	default = "ami-0d382e80be7ffdae5"  #Ubuntu: ami-0d382e80be7ffdae5 , Amazon Linux 2 ami-04468e03c37242e1e, Redhat ami-09d9c5cdcfb8fc655
 }
 
 variable "instance_type" {
 	default = "t2.micro"
 }
+
+variable "key" {
+  default = "Roam"
+}
+
+### Db
+variable "db_user" {
+  default = "dbadmin"
+}
+
+variable "db_pass" {
+  default = "dbpass1234567!"
+}
+
+variable "db_name" {
+  default = "movie_db"
+}
+
 
 
 

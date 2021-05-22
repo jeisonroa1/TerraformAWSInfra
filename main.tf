@@ -26,4 +26,12 @@ provider "aws" {
 	region     = var.aws_region
 }
 
+##Outputs
 
+output "Sql_host" {
+  value = aws_db_instance.db_mysql.address
+}
+
+output "UI_App" {
+  value = aws_lb.web_lb.dns_name
+}

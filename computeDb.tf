@@ -60,7 +60,3 @@ resource "aws_db_instance" "db_mysql" {
   skip_final_snapshot      = true
   tags = var.default_tags
 }
-
-output "Sql_database" {
-  value = aws_db_instance.db_mysql.address
-}

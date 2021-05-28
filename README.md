@@ -13,3 +13,10 @@ Having Terraform installed. Run:
 > terraform apply
 
 
+For auto-approve run:
+
+> terraform apply -auto-approve
+
+or
+
+> terraform destroy -auto-approve

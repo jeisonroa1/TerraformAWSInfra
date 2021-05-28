@@ -11,17 +11,8 @@ resource "aws_security_group" "db_security_group" {
     from_port = 3306
     to_port = 3306
     protocol = "tcp"
-    security_groups = [aws_security_group.app_instance_sg.id]
+    security_groups = [aws_security_group.app_instance_sg.id, aws_security_group.bastion_sg.id]
   }
-
-  #############################################################################
-  ingress {
-    from_port = 3306
-    to_port = 3306
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
 
   # Allow all outbound traffic.
   egress {

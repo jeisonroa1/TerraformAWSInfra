@@ -35,3 +35,9 @@ output "Sql_host" {
 output "UI_App" {
   value = aws_lb.web_lb.dns_name
 }
+
+output "Bastion_Host_IP" {
+  value = aws_instance.bastion-host.public_ip
+}
+
+

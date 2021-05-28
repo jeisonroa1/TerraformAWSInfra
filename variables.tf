@@ -74,6 +74,18 @@ variable "db_name" {
   default = "movie_db"
 }
 
+### Bastion Host
+variable "root_device_type" {
+  description = "Type of the root block device"
+  type        = string
+  default     = "gp2"
+}
+ 
+variable "root_device_size" {
+  description = "Size of the root block device"
+  type        = string
+  default     = "20"
+}
 
 
 

@@ -44,7 +44,7 @@ resource "aws_db_instance" "db_mysql" {
   username                 = var.db_user
   password                 = var.db_pass
   port                     = 3306
-  publicly_accessible      = true #
+  publicly_accessible      = false #
   storage_encrypted        = true
   storage_type             = "gp2"
   vpc_security_group_ids   = [aws_security_group.db_security_group.id]

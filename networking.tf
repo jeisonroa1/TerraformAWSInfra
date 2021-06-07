@@ -54,23 +54,6 @@ resource "aws_subnet" "database_subnet" {
   tags = var.default_tags
 }
 
-# Public Subnet Route Table 
-#resource "aws_route_table" "public_subnet_route_table" {
-#  vpc_id = aws_vpc.main.id
-#  route {
-#    cidr_block = "0.0.0.0/0"
-#    gateway_id = aws_internet_gateway.igw.id
-#  }
-#  tags = var.default_tags
-#}
-
-# Public subnet route table association
-#resource "aws_route_table_association" "public_subnet_route_table_association" {
-#  for_each = var.az_public_subnet
-#  subnet_id      = aws_subnet.public_subnet[each.key].id
-#  route_table_id = aws_route_table.public_subnet_route_table.id
-#}
-
 # Elastic IP for NAT
 resource "aws_eip" "nat_eip" {
   vpc = true
@@ -104,3 +87,20 @@ resource "aws_route_table_association" "private_subnet_route_table_association" 
   subnet_id      = element(values(aws_subnet.private_subnet).*.id, count.index)
   depends_on = [aws_route_table.private_subnet_route_table]
 }
+
+# Public Subnet Route Table 
+#resource "aws_route_table" "public_subnet_route_table" {
+#  vpc_id = aws_vpc.main.id
+#  route {
+#    cidr_block = "0.0.0.0/0"
+#    gateway_id = aws_internet_gateway.igw.id
+#  }
+#  tags = var.default_tags
+#}
+
+# Public subnet route table association
+#resource "aws_route_table_association" "public_subnet_route_table_association" {
+#  for_each = var.az_public_subnet
+#  subnet_id      = aws_subnet.public_subnet[each.key].id
+#  route_table_id = aws_route_table.public_subnet_route_table.id
+#}

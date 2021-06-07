@@ -50,7 +50,7 @@ variable "availability_zones" {
 
 ### Compute
 variable "ami" {
-	default = "ami-0d382e80be7ffdae5"  #Ubuntu: ami-0d382e80be7ffdae5 , Amazon Linux 2 ami-04468e03c37242e1e, Redhat ami-09d9c5cdcfb8fc655
+	default = "ami-0d382e80be7ffdae5"  
 }
 
 variable "instance_type" {

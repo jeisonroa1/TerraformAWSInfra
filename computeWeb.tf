@@ -99,8 +99,13 @@ resource "aws_launch_template" "web_launch_template" {
   instance_type = var.instance_type
   vpc_security_group_ids = [aws_security_group.web_instance_sg.id]
   user_data = base64encode("${file("init-web-instance.sh")}\nBACK_HOST=${local.backend_dns} node /home/ubuntu/movie-analyst-ui/server.js &")
-  tags = var.default_tags
-  key_name = var.key    
+  key_name = var.key 
+  tags = merge(
+    var.default_tags,
+    {
+      App = "UI"
+    },
+  )   
   depends_on = [aws_lb_listener.web_listener, aws_lb.app_lb] 
 }
 

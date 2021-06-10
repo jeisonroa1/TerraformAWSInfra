@@ -22,7 +22,6 @@ resource "aws_iam_role" "bastion_role" {
   assume_role_policy  = jsonencode({
     Version = "2012-10-17"
     Statement = [
-
       {
       "Action": "sts:AssumeRole",
       "Principal": {
@@ -35,6 +34,14 @@ resource "aws_iam_role" "bastion_role" {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+      },
+      {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "rds.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -59,6 +66,11 @@ resource "aws_iam_role_policy" "bastion_policy" {
       {
         Effect   = "Allow"
         Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]  
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["rds:Describe*"] 
         Resource = "*"
       }
     ]

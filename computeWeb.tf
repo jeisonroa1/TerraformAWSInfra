@@ -100,6 +100,15 @@ resource "aws_launch_template" "web_launch_template" {
   vpc_security_group_ids = [aws_security_group.web_instance_sg.id]
   user_data = base64encode("${file("init-web-instance.sh")}\nBACK_HOST=${local.backend_dns} node /home/ubuntu/movie-analyst-ui/server.js &")
   key_name = var.key 
+  tag_specifications {
+    resource_type = "instance"
+    tags = merge(
+    var.default_tags,
+    {
+      App = "UI"
+    },
+  )
+  }
   tags = merge(
     var.default_tags,
     {

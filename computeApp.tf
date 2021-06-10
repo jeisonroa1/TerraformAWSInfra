@@ -106,6 +106,15 @@ resource "aws_launch_template" "app_launch_template" {
   vpc_security_group_ids = [aws_security_group.app_instance_sg.id]
   user_data = base64encode("${file("init-app-instance.sh")}\nDB_HOST=${aws_db_instance.db_mysql.address} DB_USER=${var.db_user} DB_PASS=${var.db_pass} DB_NAME=${var.db_name} node /home/ubuntu/movie-analyst-api/server.js &")
   key_name = var.key
+  tag_specifications {
+    resource_type = "instance"
+    tags = merge(
+    var.default_tags,
+    {
+      App = "API"
+    },
+  )
+  }
   tags = merge(
     var.default_tags,
     {

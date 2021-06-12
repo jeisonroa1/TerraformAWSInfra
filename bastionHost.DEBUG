@@ -1,0 +1,177 @@
+####################################
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.26.0"
+    }
+  }
+}
+
+## Provider
+provider "aws" {
+  region     = "us-west-1"
+}
+
+# VPC
+resource "aws_vpc" "main" {
+  cidr_block       = "10.0.0.0/16"
+  instance_tenancy = "default"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+}
+
+# Internet Gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  depends_on = [aws_vpc.main]
+}
+
+resource "aws_default_route_table" "main_table" {
+  default_route_table_id = aws_vpc.main.default_route_table_id
+  route {
+    cidr_block = "0.0.0.0/0" 
+    gateway_id = aws_internet_gateway.igw.id
+  }
+  depends_on = [aws_internet_gateway.igw]
+}
+
+#  Public Subnet
+resource "aws_subnet" "public_subnet" {
+  vpc_id = aws_vpc.main.id
+  availability_zone = "us-west-1a"
+  cidr_block        = "10.0.0.0/24"
+  map_public_ip_on_launch = true 
+}
+
+#######################################
+
+
+## Bastion Host
+
+# S3 Artifact Repo Bucket
+resource "aws_s3_bucket" "bucket" {
+  bucket = "rampupartifactrepo"
+  acl    = "private"
+  versioning {
+    enabled = true
+  }
+  lifecycle_rule {
+    enabled = true
+    noncurrent_version_expiration {
+      days = 7
+    }   
+  }
+}
+
+# IAM Role
+resource "aws_iam_role" "bastion_role" {
+  name                = "bastion_role"
+  assume_role_policy  = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+
+      {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+      },
+      {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+      }
+    ]
+  })  
+}
+
+# IAM Role Policy
+resource "aws_iam_role_policy" "bastion_policy" {
+  name = "bastion_policy"
+  role = aws_iam_role.bastion_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["ec2:Describe*"]
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]  
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Instance Profile
+resource "aws_iam_instance_profile" "bastion_profile" {
+  name = "bastion_profile"
+  role = aws_iam_role.bastion_role.name
+  depends_on = [aws_iam_role.bastion_role]
+}
+
+# Bastion Host Security Group
+resource "aws_security_group" "bastion_sg" {
+  name        = "bastion-host-security-group"
+  description = "Allowing SSH requests from admins"
+  vpc_id = aws_vpc.main.id
+  
+  ## SSH     
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ## Jenkins     
+  ingress {
+    from_port = 8080
+    to_port = 8080
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+  depends_on = [aws_vpc.main]
+}
+
+# Bastion Host Instance
+resource "aws_instance" "bastion-host" {
+  ami                         = "ami-0d382e80be7ffdae5"
+  availability_zone           = "us-west-1a"
+  instance_type               = "t2.micro"
+  iam_instance_profile        = aws_iam_instance_profile.bastion_profile.name
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
+  subnet_id                   = aws_subnet.public_subnet.id
+  key_name                    = "Roam"
+ 
+  root_block_device {
+    delete_on_termination = true
+    encrypted             = false
+    volume_size           = "20"
+    volume_type           = "gp2"
+  }
+  depends_on = [aws_security_group.bastion_sg , aws_subnet.public_subnet, aws_iam_instance_profile.bastion_profile]
+}
+
+# Output
+output "Bastion_Host_IP" {
+  value = aws_instance.bastion-host.public_ip
+}
